@@ -67,12 +67,14 @@ impl Store {
 	}
 
 	pub fn set(&self, key: &str, value: &str) {
-		self.inner.write().expect("Unable to write").data.insert(key.to_string(), value.to_string());
-		self.tx.send(format!("SET {} {}\n", key, value)).unwrap();
+		if self.inner.write().expect("Unable to write").data.insert(key.to_string(), value.to_string()) != Some(value.to_string()) {
+			self.tx.send(format!("SET {} {}\n", key, value)).unwrap();
+		}
 	}
 
 	pub fn del(&self, key: &str) {
-		self.inner.write().expect("Unable to write").data.remove(key);
-		self.tx.send(format!("DEL {}\n", key)).unwrap();
+		if self.inner.write().expect("Unable to write").data.remove(key).is_some() {
+			self.tx.send(format!("DEL {}\n", key)).unwrap();
+		}
 	}
 }
