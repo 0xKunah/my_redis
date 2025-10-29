@@ -1,4 +1,4 @@
-use std::time::Instant;
+use std::{thread, time::Instant};
 use rand::{Rng, rng};
 mod tcp;
 
@@ -23,14 +23,26 @@ fn generate_random_message() -> String {
 }
 
 fn main() -> std::io::Result<()> {
-	let mut conn = tcp::TcpClient::new()?;
-	let start = Instant::now();
+	let mut handles = vec![];
 
-	for _ in 0..100000 {
-		conn.send_message(generate_random_message().as_str()).unwrap();
+	for i in 0..20 {
+		let handle = thread::spawn(move || {
+			let thread_tart = Instant::now();
+			let mut conn = tcp::TcpClient::new().unwrap();
+
+			for _ in 0..1000000 {
+				conn.send_message(generate_random_message().as_str()).unwrap();
+			}
+
+			println!("Thread {} {}ms", i, thread_tart.elapsed().as_millis());
+		});
+
+		handles.push(handle);
 	}
 
-	println!("{}ms", start.elapsed().as_millis());
+	for handle in handles {
+        handle.join().unwrap();
+    }
 
 	Ok(())
 }
