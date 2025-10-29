@@ -25,7 +25,6 @@ impl TcpServer {
 	}
 
 	pub fn handle_client(&self, mut stream: TcpStream) {
-		println!("Accepted connection {:?}", stream.peer_addr());
 		let store = Arc::clone(&self.store);
 		let mut buffer = [0; 512];
 
@@ -49,11 +48,8 @@ impl TcpServer {
 			}
 
 			response = self.parse_message(&response);
-			println!("Sending response: {}", response);
 			stream.write_all(response.as_bytes()).unwrap();
 		}
-
-		println!("Closed connection {:?}", stream.peer_addr());
 	}
 
 	pub fn listen(self: Arc<Self>) {
